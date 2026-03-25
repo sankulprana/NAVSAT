@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project NavSat – Satellite Trajectory Optimization System</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Plotly.js CDN -->
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+  <div class="stars-background"></div>
+  <header class="top-bar">
+    <div class="logo-area">
+      <span class="logo-dot"></span>
+      <span class="logo-text">Project NavSat</span>
+    </div>
+    <nav class="top-nav">
+      <a href="#landing">Overview</a>
+      <a href="#input-panel">Input Panel</a>
+      <a href="#visualization">Trajectory</a>
+      <a href="#results">Results</a>
+      <a href="#monitoring">Monitoring</a>
+    </nav>
+    <div class="status-indicator">
+      <span class="status-light online"></span>
+      <span class="status-text">MISSION CONTROL ONLINE</span>
+    </div>
+  </header>
+
+  <!-- Landing / Hero Section -->
+  <section id="landing" class="landing-section">
+    <div class="landing-content">
+      <h1>Project NavSat</h1>
+      <h2>Efficient Trajectory Planning for Artificial Satellites Using Machine Learning</h2>
+      <p>
+        Project NavSat is a satellite trajectory optimization system that predicts
+        efficient orbital paths, minimizes fuel consumption, and avoids potential
+        collisions with space debris — inspired by real-world mission control workflows.
+      </p>
+      <button id="start-simulation-btn" class="primary-btn">
+        Start Simulation
+      </button>
+    </div>
+    <div class="landing-side-panel">
+      <div class="telemetry-card">
+        <div class="telemetry-header">Live Telemetry Snapshot</div>
+        <div class="telemetry-body">
+          <div class="telemetry-row">
+            <span>Active Satellites</span><span id="telemetry-active">07</span>
+          </div>
+          <div class="telemetry-row">
+            <span>Average Altitude</span><span id="telemetry-altitude">742 km</span>
+          </div>
+          <div class="telemetry-row">
+            <span>Collision Alerts</span><span id="telemetry-alerts">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="orbit-mini-visual">
+        <div class="orbit-circle orbit-1"></div>
+        <div class="orbit-circle orbit-2"></div>
+        <div class="orbit-circle orbit-3"></div>
+        <div class="orbit-satellite"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Dashboard Grid -->
+  <main class="dashboard-grid">
+    <!-- Satellite Input Panel -->
+    <section id="input-panel" class="panel card control-panel">
+      <div class="panel-header">
+        <h3>Satellite Input Panel</h3>
+        <span class="panel-subtitle">Configure mission parameters</span>
+      </div>
+      <form id="satellite-form" class="control-form">
+        <div class="form-grid">
+          <div class="form-field">
+            <label for="satelliteName">Satellite Name</label>
+            <input type="text" id="satelliteName" placeholder="e.g. NAVSAT-01" />
+          </div>
+          <div class="form-field">
+            <label for="altitude">Altitude (km)</label>
+            <input type="number" id="altitude" placeholder="e.g. 700" min="160" />
+          </div>
+          <div class="form-field">
+            <label for="velocity">Velocity (km/s)</label>
+            <input type="number" id="velocity" step="0.01" placeholder="e.g. 7.8" />
+          </div>
+          <div class="form-field">
+            <label for="inclination">Inclination (°)</label>
+            <input type="number" id="inclination" step="0.1" placeholder="e.g. 98.7" />
+          </div>
+          <div class="form-field">
+            <label for="latitude">Latitude (°)</label>
+            <input type="number" id="latitude" step="0.01" placeholder="e.g. 12.45" />
+          </div>
+          <div class="form-field">
+            <label for="longitude">Longitude (°)</label>
+            <input type="number" id="longitude" step="0.01" placeholder="e.g. 77.12" />
+          </div>
+          <div class="form-field">
+            <label for="fuelCapacity">Fuel Capacity (arbitrary units)</label>
+            <input type="number" id="fuelCapacity" placeholder="e.g. 1000" min="1" />
+          </div>
+          <div class="form-field">
+            <label for="missionDuration">Mission Duration (days)</label>
+            <input type="number" id="missionDuration" placeholder="e.g. 365" min="1" />
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" id="generate-btn" class="primary-btn">
+            Generate Optimized Trajectory
+          </button>
+          <button type="button" id="reset-btn" class="secondary-btn">
+            Reset Parameters
+          </button>
+          <div id="form-message" class="form-message" aria-live="polite"></div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Trajectory Visualization Section -->
+    <section id="visualization" class="panel card visualization-panel">
+      <div class="panel-header">
+        <h3>Trajectory Visualization</h3>
+        <span class="panel-subtitle">Earth-centered 3D orbit view</span>
+      </div>
+      <div id="trajectory-plot" class="trajectory-plot">
+        <div class="plot-placeholder">
+          <span>Awaiting simulation parameters...</span>
+        </div>
+      </div>
+      <div class="plot-legend-hint">
+        Use mouse / touch to rotate, zoom, and pan the orbit.
+      </div>
+    </section>
+
+    <!-- Results Dashboard -->
+    <section id="results" class="panel card results-panel">
+      <div class="panel-header">
+        <h3>Results Dashboard</h3>
+        <span class="panel-subtitle">Simulation KPIs</span>
+      </div>
+      <div class="results-grid">
+        <div class="metric-card" id="card-fuel">
+          <div class="metric-header">
+            <span>Fuel Consumption</span>
+            <span id="fuel-value" class="metric-value">-- %</span>
+          </div>
+          <div class="metric-bar">
+            <div id="fuel-bar" class="metric-bar-fill"></div>
+          </div>
+        </div>
+
+        <div class="metric-card" id="card-risk">
+          <div class="metric-header">
+            <span>Collision Risk Level</span>
+            <span id="risk-value" class="metric-value">--</span>
+          </div>
+          <div class="metric-bar">
+            <div id="risk-bar" class="metric-bar-fill"></div>
+          </div>
+        </div>
+
+        <div class="metric-card" id="card-stability">
+          <div class="metric-header">
+            <span>Orbit Stability</span>
+            <span id="stability-value" class="metric-value">-- %</span>
+          </div>
+          <div class="metric-bar">
+            <div id="stability-bar" class="metric-bar-fill"></div>
+          </div>
+        </div>
+
+        <div class="metric-card" id="card-efficiency">
+          <div class="metric-header">
+            <span>Path Efficiency Score</span>
+            <span id="efficiency-value" class="metric-value">-- %</span>
+          </div>
+          <div class="metric-bar">
+            <div id="efficiency-bar" class="metric-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Satellite Monitoring Table -->
+    <section id="monitoring" class="panel card monitoring-panel">
+      <div class="panel-header">
+        <h3>Satellite Monitoring</h3>
+        <span class="panel-subtitle">Recent simulation runs</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="monitoring-table">
+          <thead>
+            <tr>
+              <th>Satellite Name</th>
+              <th>Current Position</th>
+              <th>Velocity (km/s)</th>
+              <th>Altitude (km)</th>
+              <th>Risk Level</th>
+            </tr>
+          </thead>
+          <tbody id="satellite-table-body">
+            <!-- Rows injected dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-left">
+      <span class="footer-title">Project NavSat – Satellite Trajectory Optimization System</span>
+      <span class="footer-subtitle">Mission Control Interface</span>
+    </div>
+    <div class="footer-center">
+      <!-- <span>Team Members: Sankulp Rana (ENG23CT0039), Kartik Doye (ENG23CT0054), Mayank Singh (ENG23CT0032), Sesank (ENG23CT0048)
+         
+      </span> -->
+      <span>Dayananda sagar university</span>
+    </div>
+    <div class="footer-right">
+      <span>&copy; <span id="footer-year"></span> Project NavSat</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
