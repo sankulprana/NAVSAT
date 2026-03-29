@@ -158,7 +158,7 @@ async function generateTrajectory(params, plotContainer, tableBody) {
   const scaledTrajectory = updateGraph(plotContainer, currentTrajectory, params);
 
   // Update KPIs and monitoring table using backend metrics
-  updateResults(data);
+  updateResults(data, params);
   updateMonitoringTable(tableBody, params, data);
 
   // Start (or restart) the moving satellite animation along this path
@@ -446,47 +446,65 @@ function animateSatellite(trajectory) {
 }
 
 // Results Dashboard Metrics
-function updateResults(data) {
-  const fuelValueEl = document.getElementById("fuel-value");
-  const fuelBarEl = document.getElementById("fuel-bar");
-  const riskValueEl = document.getElementById("risk-value");
-  const riskBarEl = document.getElementById("risk-bar");
-  const stabilityValueEl = document.getElementById("stability-value");
-  const stabilityBarEl = document.getElementById("stability-bar");
-  const efficiencyValueEl = document.getElementById("efficiency-value");
-  const efficiencyBarEl = document.getElementById("efficiency-bar");
+function updateResults(data, params) {
+  // ------------------------------
+  // Optimized path metrics (backend)
+  // ------------------------------
+  const optFuel = typeof data.fuel_consumption === "number" ? data.fuel_consumption : 0;
+  const optEfficiency = typeof data.efficiency === "number" ? data.efficiency : 0;
+  const optRiskLabelRaw = (data.collision_risk || "").toString();
+  const optRiskLabel = optRiskLabelRaw.toUpperCase();
 
-  const fuelUsage = typeof data.fuel_consumption === "number" ? data.fuel_consumption : 0;
-  const efficiency = typeof data.efficiency === "number" ? data.efficiency : 0;
-  const riskLabelRaw = (data.collision_risk || "").toString();
-  const riskLabel = riskLabelRaw.toUpperCase();
+  // Convert risk label to a progress value for the UI bar
+  const optRiskPercent =
+    optRiskLabel === "HIGH" ? 85 : optRiskLabel === "MEDIUM" ? 60 : 30;
 
-  let riskPercent = 30;
-  if (riskLabel === "HIGH") {
-    riskPercent = 85;
-  } else if (riskLabel === "MEDIUM") {
-    riskPercent = 60;
-  }
+  // Simple stability proxy (demo): stability tracks efficiency
+  const optStability = Math.min(100, Math.max(0, optEfficiency * 0.9));
 
-  const stability = Math.min(100, Math.max(0, efficiency * 0.9));
+  // ------------------------------
+  // Current path metrics (baseline)
+  // ------------------------------
+  // For the "current path" we derive a baseline from the same inputs and the optimized output.
+  // This keeps the demo simple while clearly showing a difference between current vs optimized.
+  const baselinePenalty = 0.12 + Math.min(0.18, Math.abs((params.inclination || 0) - 45) / 300);
 
-  // Update text
-  fuelValueEl.textContent = `${fuelUsage.toFixed(1)}`;
-  riskValueEl.textContent = `${riskLabel} (${riskPercent}%)`;
-  stabilityValueEl.textContent = `${stability.toFixed(0)} %`;
-  efficiencyValueEl.textContent = `${efficiency.toFixed(0)} %`;
+  const currentFuel = optFuel * (1 + baselinePenalty); // higher fuel usage before optimization
+  const currentEfficiency = Math.max(0, Math.min(100, optEfficiency - (10 + baselinePenalty * 35)));
 
-  // Animate progress bars
-  animateBarTo(fuelBarEl, fuelUsage);
-  animateBarTo(riskBarEl, riskPercent);
-  animateBarTo(stabilityBarEl, stability);
-  animateBarTo(efficiencyBarEl, efficiency);
+  // Current risk is one level worse than optimized (demo logic)
+  let currentRiskLabel = "LOW";
+  if (optRiskLabel === "LOW") currentRiskLabel = "MEDIUM";
+  if (optRiskLabel === "MEDIUM") currentRiskLabel = "HIGH";
+  if (optRiskLabel === "HIGH") currentRiskLabel = "HIGH";
+  const currentRiskPercent =
+    currentRiskLabel === "HIGH" ? 85 : currentRiskLabel === "MEDIUM" ? 60 : 30;
 
-  // Reveal cards with entrance animation
+  const currentStability = Math.min(100, Math.max(0, currentEfficiency * 0.85));
+
+  // ------------------------------
+  // Render values + animate bars
+  // ------------------------------
+  // Fuel bars are normalized against fuel capacity (so the bar looks meaningful).
+  const fuelCap = Math.max(1, Number(params.fuelCapacity || 1));
+  const optFuelPct = Math.min(100, Math.max(0, (optFuel / fuelCap) * 100));
+  const currentFuelPct = Math.min(100, Math.max(0, (currentFuel / fuelCap) * 100));
+
+  setMetric("opt", "fuel", `${optFuel.toFixed(1)} u`, optFuelPct);
+  setMetric("opt", "risk", `${optRiskLabel} (${optRiskPercent}%)`, optRiskPercent);
+  setMetric("opt", "stability", `${optStability.toFixed(0)} %`, optStability);
+  setMetric("opt", "efficiency", `${optEfficiency.toFixed(0)} %`, optEfficiency);
+
+  setMetric("current", "fuel", `${currentFuel.toFixed(1)} u`, currentFuelPct);
+  setMetric("current", "risk", `${currentRiskLabel} (${currentRiskPercent}%)`, currentRiskPercent);
+  setMetric("current", "stability", `${currentStability.toFixed(0)} %`, currentStability);
+  setMetric("current", "efficiency", `${currentEfficiency.toFixed(0)} %`, currentEfficiency);
+
+  // Reveal cards with entrance animation (both sections)
   document.querySelectorAll(".metric-card").forEach((card, idx) => {
     setTimeout(() => {
       card.classList.add("visible");
-    }, idx * 80);
+    }, idx * 60);
   });
 }
 
@@ -494,29 +512,29 @@ function resetDashboardMetrics() {
   const resetText = "--";
   const resetBarPercent = 0;
 
-  const fuelValueEl = document.getElementById("fuel-value");
-  const fuelBarEl = document.getElementById("fuel-bar");
-  const riskValueEl = document.getElementById("risk-value");
-  const riskBarEl = document.getElementById("risk-bar");
-  const stabilityValueEl = document.getElementById("stability-value");
-  const stabilityBarEl = document.getElementById("stability-bar");
-  const efficiencyValueEl = document.getElementById("efficiency-value");
-  const efficiencyBarEl = document.getElementById("efficiency-bar");
-
-  fuelValueEl.textContent = `${resetText} %`;
-  riskValueEl.textContent = resetText;
-  stabilityValueEl.textContent = `${resetText} %`;
-  efficiencyValueEl.textContent = `${resetText} %`;
-
-  [fuelBarEl, riskBarEl, stabilityBarEl, efficiencyBarEl].forEach((bar) => {
-    if (bar) {
-      bar.style.width = `${resetBarPercent}%`;
-    }
+  // Reset both "current" and "optimized" metric groups
+  ["current", "opt"].forEach((prefix) => {
+    const ids = ["fuel", "risk", "stability", "efficiency"];
+    ids.forEach((metric) => {
+      const valueEl = document.getElementById(`${prefix}-${metric}-value`);
+      const barEl = document.getElementById(`${prefix}-${metric}-bar`);
+      if (valueEl) valueEl.textContent = metric === "risk" ? resetText : `${resetText}`;
+      if (barEl) barEl.style.width = `${resetBarPercent}%`;
+    });
   });
 
   document.querySelectorAll(".metric-card").forEach((card) => {
     card.classList.remove("visible");
   });
+}
+
+// Helper for setting a metric value + progress bar by id prefix.
+// Example: setMetric("opt", "fuel", "23.5 u", 45)
+function setMetric(prefix, metric, textValue, percent) {
+  const valueEl = document.getElementById(`${prefix}-${metric}-value`);
+  const barEl = document.getElementById(`${prefix}-${metric}-bar`);
+  if (valueEl) valueEl.textContent = textValue;
+  animateBarTo(barEl, Math.min(100, Math.max(0, percent)));
 }
 
 function animateBarTo(barEl, targetPercent) {

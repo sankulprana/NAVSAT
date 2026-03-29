@@ -507,6 +507,31 @@ button {
 }
 
 /* Results Dashboard */
+.results-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.results-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0.15rem 0.15rem 0.55rem;
+}
+
+.results-section-title {
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #93c5fd;
+}
+
+.results-section-hint {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
 .results-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

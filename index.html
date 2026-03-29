@@ -143,44 +143,100 @@
         <h3>Results Dashboard</h3>
         <span class="panel-subtitle">Simulation KPIs</span>
       </div>
-      <div class="results-grid">
-        <div class="metric-card" id="card-fuel">
-          <div class="metric-header">
-            <span>Fuel Consumption</span>
-            <span id="fuel-value" class="metric-value">-- %</span>
+      <div class="results-sections">
+        <div class="results-section">
+          <div class="results-section-header">
+            <span class="results-section-title">Current Path</span>
+            <span class="results-section-hint">Baseline (pre-optimization)</span>
           </div>
-          <div class="metric-bar">
-            <div id="fuel-bar" class="metric-bar-fill"></div>
+          <div class="results-grid">
+            <div class="metric-card" id="card-current-fuel">
+              <div class="metric-header">
+                <span>Fuel Consumption</span>
+                <span id="current-fuel-value" class="metric-value">--</span>
+              </div>
+              <div class="metric-bar">
+                <div id="current-fuel-bar" class="metric-bar-fill"></div>
+              </div>
+            </div>
+
+            <div class="metric-card" id="card-current-risk">
+              <div class="metric-header">
+                <span>Collision Risk Level</span>
+                <span id="current-risk-value" class="metric-value">--</span>
+              </div>
+              <div class="metric-bar">
+                <div id="current-risk-bar" class="metric-bar-fill"></div>
+              </div>
+            </div>
+
+            <div class="metric-card" id="card-current-stability">
+              <div class="metric-header">
+                <span>Orbit Stability</span>
+                <span id="current-stability-value" class="metric-value">-- %</span>
+              </div>
+              <div class="metric-bar">
+                <div id="current-stability-bar" class="metric-bar-fill"></div>
+              </div>
+            </div>
+
+            <div class="metric-card" id="card-current-efficiency">
+              <div class="metric-header">
+                <span>Path Efficiency Score</span>
+                <span id="current-efficiency-value" class="metric-value">-- %</span>
+              </div>
+              <div class="metric-bar">
+                <div id="current-efficiency-bar" class="metric-bar-fill"></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="metric-card" id="card-risk">
-          <div class="metric-header">
-            <span>Collision Risk Level</span>
-            <span id="risk-value" class="metric-value">--</span>
+        <div class="results-section">
+          <div class="results-section-header">
+            <span class="results-section-title">Optimized Path</span>
+            <span class="results-section-hint">Backend optimization output</span>
           </div>
-          <div class="metric-bar">
-            <div id="risk-bar" class="metric-bar-fill"></div>
-          </div>
-        </div>
+          <div class="results-grid">
+            <div class="metric-card" id="card-opt-fuel">
+              <div class="metric-header">
+                <span>Fuel Consumption</span>
+                <span id="opt-fuel-value" class="metric-value">--</span>
+              </div>
+              <div class="metric-bar">
+                <div id="opt-fuel-bar" class="metric-bar-fill"></div>
+              </div>
+            </div>
 
-        <div class="metric-card" id="card-stability">
-          <div class="metric-header">
-            <span>Orbit Stability</span>
-            <span id="stability-value" class="metric-value">-- %</span>
-          </div>
-          <div class="metric-bar">
-            <div id="stability-bar" class="metric-bar-fill"></div>
-          </div>
-        </div>
+            <div class="metric-card" id="card-opt-risk">
+              <div class="metric-header">
+                <span>Collision Risk Level</span>
+                <span id="opt-risk-value" class="metric-value">--</span>
+              </div>
+              <div class="metric-bar">
+                <div id="opt-risk-bar" class="metric-bar-fill"></div>
+              </div>
+            </div>
 
-        <div class="metric-card" id="card-efficiency">
-          <div class="metric-header">
-            <span>Path Efficiency Score</span>
-            <span id="efficiency-value" class="metric-value">-- %</span>
-          </div>
-          <div class="metric-bar">
-            <div id="efficiency-bar" class="metric-bar-fill"></div>
+            <div class="metric-card" id="card-opt-stability">
+              <div class="metric-header">
+                <span>Orbit Stability</span>
+                <span id="opt-stability-value" class="metric-value">-- %</span>
+              </div>
+              <div class="metric-bar">
+                <div id="opt-stability-bar" class="metric-bar-fill"></div>
+              </div>
+            </div>
+
+            <div class="metric-card" id="card-opt-efficiency">
+              <div class="metric-header">
+                <span>Path Efficiency Score</span>
+                <span id="opt-efficiency-value" class="metric-value">-- %</span>
+              </div>
+              <div class="metric-bar">
+                <div id="opt-efficiency-bar" class="metric-bar-fill"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
