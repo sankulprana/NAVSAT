@@ -319,6 +319,7 @@ button {
   grid-template-areas:
     "input visualization"
     "results visualization"
+    "missionbrief visualization"
     "monitoring monitoring";
   gap: 1.5rem;
   padding: 0.5rem 2.5rem 2.2rem;
@@ -334,14 +335,42 @@ button {
 
 .visualization-panel {
   grid-area: visualization;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .results-panel {
   grid-area: results;
 }
 
+.mission-brief-panel {
+  grid-area: missionbrief;
+}
+
 .monitoring-panel {
   grid-area: monitoring;
+}
+
+/* GenAI Mission Brief */
+.mission-brief-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mission-brief-text {
+  white-space: pre-wrap;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 12px;
+  padding: 14px;
+  min-height: 140px;
+  max-height: 320px;
+  overflow: auto;
+  color: #e5f5ff;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .card {
@@ -482,7 +511,8 @@ button {
 /* Trajectory Visualization */
 .trajectory-plot {
   position: relative;
-  height: 360px;
+  flex: 1;
+  min-height: 400px;
   border-radius: 0.9rem;
   border: 1px solid rgba(56, 189, 248, 0.4);
   background: radial-gradient(circle at top, rgba(15, 23, 42, 0.9), #020617);
@@ -763,6 +793,7 @@ button {
   }
 
   .trajectory-plot {
+    flex: none;
     height: 320px;
   }
 

@@ -12,33 +12,35 @@ Project NavSat is a web-based satellite trajectory optimization system that leve
 - **Collision Risk Assessment**: Evaluates potential collision risks for different orbital configurations
 - **Interactive Web Interface**: Modern, space-themed UI with real-time visualization using Plotly.js
 - **RESTful API**: Flask-based backend providing trajectory optimization endpoints
+- **Data Pipeline + CSV Storage**: Optional pipeline that loads (or generates) data, computes efficiency features, and stores a processed CSV for inspection
 
 ### Technologies Used
 
 - **Backend**: Python, Flask, Flask-CORS
 - **Machine Learning**: Scikit-learn (Random Forest Regressor), NumPy
 - **Frontend**: HTML5, CSS3, JavaScript, Plotly.js
-- **Data Processing**: NumPy for numerical computations
+- **Data Processing**: Pandas + NumPy (CSV ingestion/processing/storage)
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/your-username/project-navsat.git
-   cd project-navsat
-   ```
-
-2. Install Python dependencies:
+1. Install Python dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Run the application:
+2. Run the Flask API (backend):
    ```bash
    python server.py
    ```
 
-4. Open your browser and navigate to `http://localhost:5000`
+3. Open the UI:
+   - Open `index.html` in your browser (or use a simple local web server / VS Code “Live Server” extension).
+   - The UI will call the Flask API at `http://127.0.0.1:5000`.
+
+4. (Optional) Run the data pipeline (generates/stores CSV output):
+   ```bash
+   python main.py
+   ```
 
 ### Usage
 
@@ -82,15 +84,46 @@ Project NavSat is a web-based satellite trajectory optimization system that leve
 ### Project Structure
 
 ```
-project-navsat/
-├── app.py              # Machine learning efficiency model
-├── optimizer.py        # Trajectory generation and optimization logic
-├── server.py           # Flask backend server
-├── index.html          # Main web interface
-├── style.css           # CSS styling
-├── script.js           # Frontend JavaScript logic
-├── requirements.txt    # Python dependencies
-└── README.md           # Project documentation
+minor/
+├── server.py                # Flask backend (API endpoint: /generate-trajectory)
+├── app.py                   # RandomForest efficiency model used by server.py
+├── optimizer.py             # Trajectory + mission metrics generation
+├── index.html               # Frontend UI
+├── script.js                # Frontend logic (calls Flask API)
+├── style.css                # UI styling
+├── requirements.txt         # Python dependencies
+├── main.py                  # Runs the data pipeline + trains MLP model for CLI demo
+├── pipeline.py              # Pipeline orchestration: ingestion -> processing -> storage
+├── ingestion.py              # Loads raw CSV or generates synthetic input data
+├── processing.py             # Computes efficiency + engineered features
+├── storage.py                # Writes processed CSV to disk
+├── model.py                  # MLPRegressor model used by main.py (pipeline training_df)
+└── data/
+    ├── raw/
+    │   └── satellite_data.csv
+    └── processed/
+        └── processed_data.csv
+```
+
+### Where the data is stored (and how to view it)
+
+- **Raw input CSV**: `data/raw/satellite_data.csv`
+  - Used by the pipeline if it exists (otherwise `ingestion.py` generates synthetic rows).
+- **Processed output CSV**: `data/processed/processed_data.csv`
+  - Written by `storage.py` when you run `python main.py`.
+  - Contains columns like `altitude_km`, `velocity_km_s`, `efficiency`, `altitude_scaled`, `velocity_scaled`.
+
+To view the stored data:
+
+- **Quick way**: open `data/processed/processed_data.csv` in Excel/Google Sheets (or VS Code).
+- **Python way**:
+
+```python
+import pandas as pd
+
+df = pd.read_csv("data/processed/processed_data.csv")
+print(df.head())
+print(df.describe())
 ```
 
 ### Contributing

@@ -4,3 +4,7 @@ numpy
 scikit-learn
 pandas
 
+# Optional GenAI (uncomment/install if you want mission brief generation)
+# transformers
+# torch
+

@@ -1,6 +1,7 @@
 // Core constants
 const EARTH_RADIUS_KM = 6371;
 const BACKEND_URL = "http://127.0.0.1:5000/generate-trajectory";
+const GENAI_URL = "http://127.0.0.1:5000/generate-mission-brief";
 
 // State used for the animated satellite marker
 let currentTrajectory = null;
@@ -161,8 +162,56 @@ async function generateTrajectory(params, plotContainer, tableBody) {
   updateResults(data, params);
   updateMonitoringTable(tableBody, params, data);
 
+  // Generate GenAI mission brief (optional)
+  generateMissionBrief(payload).catch((e) => {
+    console.warn("Mission brief generation failed:", e);
+  });
+
   // Start (or restart) the moving satellite animation along this path
   animateSatellite(scaledTrajectory);
+}
+
+async function generateMissionBrief(payload) {
+  const statusEl = document.getElementById("mission-brief-status");
+  const textEl = document.getElementById("mission-brief-text");
+  if (!statusEl || !textEl) return;
+
+  statusEl.textContent = "Generating mission brief...";
+  statusEl.classList.toggle("success", true);
+  textEl.textContent = "";
+
+  const controller = new AbortController();
+  const timeoutMs = 12000;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let resp;
+  try {
+    resp = await fetch(GENAI_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+
+  if (!resp.ok) {
+    const t = await resp.text();
+    throw new Error(`GenAI backend error: ${resp.status} ${t}`);
+  }
+
+  const data = await resp.json();
+  if (data && typeof data.brief === "string") {
+    textEl.textContent = data.brief;
+    statusEl.textContent = data.genai_enabled
+      ? "Mission brief generated (GenAI enabled)."
+      : "Mission brief generated (GenAI disabled fallback).";
+    statusEl.classList.toggle("success", true);
+  } else {
+    statusEl.textContent = "Mission brief unavailable.";
+    statusEl.classList.toggle("success", false);
+  }
 }
 
 // Update Plotly graph using backend trajectory.
@@ -210,8 +259,14 @@ function updateGraph(container, trajectory, params) {
     }
   });
 
-  const targetRadius = EARTH_RADIUS_KM + Math.max(160, params.altitude || 400);
+  const exaggeratedAltitude = (params.altitude || 400) * 3.5;
+  const targetRadius = EARTH_RADIUS_KM + Math.max(160, exaggeratedAltitude);
   const scale = maxRadius > 0 ? targetRadius / maxRadius : 1;
+
+  // Convert inclination to radians for 3D rotation
+  const inclinationRad = ((params.inclination || 0) * Math.PI) / 180;
+  const cosInc = Math.cos(inclinationRad);
+  const sinInc = Math.sin(inclinationRad);
 
   // Scaled trajectory arrays used both for drawing the green orbit path
   // and for driving the animated satellite marker.
@@ -220,9 +275,11 @@ function updateGraph(container, trajectory, params) {
   const zs = [];
   trajectory.forEach((point) => {
     if (Array.isArray(point) && point.length >= 2) {
-      xs.push(point[0] * scale);
-      ys.push(point[1] * scale);
-      zs.push(0); // keep the orbit in a single inclined plane for now
+      const rx = point[0] * scale;
+      const ry = point[1] * scale;
+      xs.push(rx);
+      ys.push(ry * cosInc);
+      zs.push(ry * sinInc);
     }
   });
 
@@ -250,12 +307,11 @@ function updateGraph(container, trajectory, params) {
   const steps = Math.max(xs.length, 100);
   for (let i = 0; i <= steps; i++) {
     const angle = (2 * Math.PI * i) / steps;
-    const x = targetRadius * Math.cos(angle);
-    const y = targetRadius * Math.sin(angle);
-    const z = 0;
-    actualXs.push(x);
-    actualYs.push(y);
-    actualZs.push(z);
+    const rx = targetRadius * Math.cos(angle);
+    const ry = targetRadius * Math.sin(angle);
+    actualXs.push(rx);
+    actualYs.push(ry * cosInc);
+    actualZs.push(ry * sinInc);
   }
 
   const actualOrbitTrace = {
