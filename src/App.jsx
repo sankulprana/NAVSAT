@@ -136,7 +136,12 @@ export default function App() {
       });
 
       if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
+        let errDetail = `Server error: ${response.status}`;
+        try {
+          const errJson = await response.json();
+          if (errJson && errJson.error) errDetail = errJson.error;
+        } catch (_) {}
+        throw new Error(errDetail);
       }
 
       const data = await response.json();
@@ -160,7 +165,7 @@ export default function App() {
       fetchMissionBrief(payload);
     } catch (err) {
       console.error('Generation error:', err);
-      setMessage('Unable to reach backend server. Please verify Express is running.');
+      setMessage(err.message || 'Unable to reach backend server. Please verify Express is running.');
       setMessageType('error');
     } finally {
       setLoading(false);
