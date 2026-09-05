@@ -74,16 +74,16 @@ async function initDb() {
         sqliteDb.run(`
           CREATE TABLE IF NOT EXISTS predictions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            satelliteName TEXT NOT NULL,
-            altitude REAL NOT NULL,
-            velocity REAL NOT NULL,
-            inclination REAL NOT NULL,
+            satelliteName TEXT NOT NULL DEFAULT 'NAVSAT',
+            altitude REAL NOT NULL DEFAULT 0,
+            velocity REAL NOT NULL DEFAULT 0,
+            inclination REAL NOT NULL DEFAULT 0,
             latitude REAL DEFAULT 0,
             longitude REAL DEFAULT 0,
             fuelCapacity REAL DEFAULT 1000,
-            fuelConsumption REAL NOT NULL,
-            collisionRisk TEXT NOT NULL,
-            efficiency REAL NOT NULL,
+            fuelConsumption REAL NOT NULL DEFAULT 0,
+            collisionRisk TEXT NOT NULL DEFAULT 'Low',
+            efficiency REAL NOT NULL DEFAULT 0,
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
           )
         `, (tableErr) => {
@@ -96,9 +96,36 @@ async function initDb() {
 }
 
 // Data Access Methods
-async function savePrediction(data) {
+async function savePrediction(data = {}) {
+  const satelliteName = (data.satelliteName && String(data.satelliteName).trim()) 
+    || (data.satellite_name && String(data.satellite_name).trim()) 
+    || (data.name && String(data.name).trim()) 
+    || "NAVSAT";
+  const altitude = Number(data.altitude ?? data.altitude_km ?? 0) || 0;
+  const velocity = Number(data.velocity ?? data.velocity_km_s ?? 0) || 0;
+  const inclination = Number(data.inclination ?? data.inclination_deg ?? 0) || 0;
+  const latitude = Number(data.latitude ?? 0) || 0;
+  const longitude = Number(data.longitude ?? 0) || 0;
+  const fuelCapacity = Number(data.fuelCapacity ?? data.fuel_capacity ?? data.fuel ?? 1000) || 1000;
+  const fuelConsumption = Number(data.fuelConsumption ?? data.fuel_consumption ?? 0) || 0;
+  const collisionRisk = String(data.collisionRisk ?? data.collision_risk ?? "Low");
+  const efficiency = Number(data.efficiency ?? 0) || 0;
+
+  const record = {
+    satelliteName,
+    altitude,
+    velocity,
+    inclination,
+    latitude,
+    longitude,
+    fuelCapacity,
+    fuelConsumption,
+    collisionRisk,
+    efficiency
+  };
+
   if (isMongoConnected) {
-    const doc = new MongoPrediction(data);
+    const doc = new MongoPrediction(record);
     return await doc.save();
   } else {
     return new Promise((resolve, reject) => {
@@ -108,20 +135,20 @@ async function savePrediction(data) {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const params = [
-        data.satelliteName,
-        data.altitude,
-        data.velocity,
-        data.inclination,
-        data.latitude || 0,
-        data.longitude || 0,
-        data.fuelCapacity || 1000,
-        data.fuelConsumption,
-        data.collisionRisk,
-        data.efficiency
+        record.satelliteName,
+        record.altitude,
+        record.velocity,
+        record.inclination,
+        record.latitude,
+        record.longitude,
+        record.fuelCapacity,
+        record.fuelConsumption,
+        record.collisionRisk,
+        record.efficiency
       ];
       sqliteDb.run(sql, function (err) {
         if (err) return reject(err);
-        resolve({ id: this.lastID, ...data, createdAt: new Date() });
+        resolve({ id: this.lastID, ...record, createdAt: new Date() });
       });
     });
   }
