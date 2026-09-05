@@ -146,7 +146,7 @@ async function savePrediction(data = {}) {
         record.collisionRisk,
         record.efficiency
       ];
-      sqliteDb.run(sql, function (err) {
+      sqliteDb.run(sql, params, function (err) {
         if (err) return reject(err);
         resolve({ id: this.lastID, ...record, createdAt: new Date() });
       });
