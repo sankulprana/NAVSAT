@@ -156,17 +156,29 @@ $$\text{Score} = \min(100.0, \, \max(0.0, \, \eta(h, v)))$$
 
 ## 🖥️ User Interface & Visual Showcase
 
-> [!TIP]
-> Add high-resolution screenshots of your live deployment inside a `/docs/screenshots/` folder to highlight your application.
-
 <div align="center">
 
-### 3D Orbital Trajectory & Real-Time Analytics
-| Simulation Viewport & Controls | Mission Telemetry Table |
-| :---: | :---: |
-| ![Simulation Dashboard](https://raw.githubusercontent.com/sankulprana/NAVSAT/main/docs/screenshots/dashboard.png) | ![Telemetry Logs](https://raw.githubusercontent.com/sankulprana/NAVSAT/main/docs/screenshots/telemetry.png) |
+### 1. Mission Control Hero & Telemetry Header
+![Hero Landing Section](docs/screenshots/hero_landing.png)
 
-*(Placeholders: To display your own screenshots, place image files under `docs/screenshots/` and update paths above)*
+<br/>
+
+### 2. Interactive 3D WebGL Orbital Track & Satellite Telemetry
+![3D Orbit Visualization](docs/screenshots/3d_orbit_visualization.png)
+
+<br/>
+
+### 3. Simulation Parameters & AI Optimization Performance Metrics
+| Parameter Controls & Baseline vs. AI Path Analytics |
+| :---: |
+| ![Parameters & Analytics](docs/screenshots/parameters_analytics.png) |
+
+<br/>
+
+### 4. Automated Mission Intelligence Briefing
+| Dynamic AI Brief & Database Persistence Confirmation |
+| :---: |
+| ![Mission Briefing](docs/screenshots/mission_brief.png) |
 
 </div>
 
