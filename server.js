@@ -143,14 +143,20 @@ app.post("/generate-mission-brief", (req, res) => {
   });
 });
 
-// Serve frontend build if available (for single-service deployment)
+// Serve frontend build
 const distPath = path.join(__dirname, "dist");
-if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(distPath, "index.html"));
-  });
-}
+app.use(express.static(distPath));
+
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api") || req.path.startsWith("/generate-")) {
+    return next();
+  }
+  const indexPath = path.join(distPath, "index.html");
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  return res.status(404).send("Frontend build not found. Building now or check server logs.");
+});
 
 // Start DB first, then HTTP server
 db.initDb().then(({ type }) => {
