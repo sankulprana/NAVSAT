@@ -8,9 +8,10 @@ import MissionBrief from './components/MissionBrief';
 import MonitoringTable from './components/MonitoringTable';
 import Footer from './components/Footer';
 
-const BACKEND_URL = "http://127.0.0.1:5000/generate-trajectory";
-const GENAI_URL = "http://127.0.0.1:5000/generate-mission-brief";
-const HISTORY_URL = "http://127.0.0.1:5000/api/history";
+const API_BASE = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace(/\/$/, '') : (import.meta.env.DEV ? 'http://127.0.0.1:5000' : '');
+const BACKEND_URL = `${API_BASE}/generate-trajectory`;
+const GENAI_URL = `${API_BASE}/generate-mission-brief`;
+const HISTORY_URL = `${API_BASE}/api/history`;
 
 export default function App() {
   const [formData, setFormData] = useState({

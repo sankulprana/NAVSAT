@@ -1,3 +1,5 @@
+const path = require("path");
+const fs = require("fs");
 const express = require("express");
 const cors = require("cors");
 const { generateTrajectory } = require("./optimizer");
@@ -140,6 +142,15 @@ app.post("/generate-mission-brief", (req, res) => {
     genai_enabled: true,
   });
 });
+
+// Serve frontend build if available (for single-service deployment)
+const distPath = path.join(__dirname, "dist");
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(distPath, "index.html"));
+  });
+}
 
 // Start DB first, then HTTP server
 db.initDb().then(({ type }) => {
